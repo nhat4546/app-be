@@ -6,7 +6,9 @@ import { AuthModule } from './modules/auth/auth.module';
 @Module({
   imports: [
     AuthModule,
-    ConfigModule.forRoot(),
+    ConfigModule.forRoot({
+      isGlobal: true,
+    }),
     TypeOrmModule.forRoot({
       type: 'mysql',
       host: 'localhost',
