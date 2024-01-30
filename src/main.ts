@@ -12,7 +12,7 @@ async function bootstrap() {
     .setVersion('1.0')
     .build();
   const document = SwaggerModule.createDocument(app, configDocument);
-  SwaggerModule.setup('/api', app, document);
+  SwaggerModule.setup('/api-docs', app, document);
 
   const config = app.get(ConfigService);
   app.enableCors({
@@ -20,6 +20,7 @@ async function bootstrap() {
     credentials: true,
   });
 
+  app.setGlobalPrefix('api/');
   const port = +config.get('PORT') || 5000;
   app.useGlobalPipes(new ValidationPipe());
   await app.listen(port, () => {
