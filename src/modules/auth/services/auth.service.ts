@@ -1,8 +1,12 @@
-import { BadRequestException, Injectable } from '@nestjs/common';
+import {
+  BadRequestException,
+  Injectable,
+  NotFoundException,
+} from '@nestjs/common';
 import { InjectRepository } from '@nestjs/typeorm';
 import * as bcrypt from 'bcrypt';
 import * as crypto from 'crypto';
-import { Repository } from 'typeorm';
+import { MoreThan, Repository } from 'typeorm';
 
 import { ConfigService } from '@nestjs/config';
 import { AccountEntity } from 'src/modules/account/entities/account.entity';
@@ -58,6 +62,32 @@ export class AuthService {
     } catch (errors) {
       console.log('ERRORS_REGISTER_ACCOUNT', errors);
       throw new BadRequestException(errors);
+    }
+  }
+
+  async verifyRegister(code: string) {
+    try {
+      const account = await this.accountRepository.findOneBy({
+        token: code,
+        expireVerify: MoreThan(new Date()),
+      });
+
+      if (!account) {
+        throw new NotFoundException('CODE_NOT_FOUND_OR_EXPIRED');
+      }
+
+      account.isVerify = true;
+      account.token = null;
+      account.expireVerify = null;
+      await this.accountRepository.save(account);
+
+      return {
+        status: 200,
+        message: 'VERIFY_REGISTER_SUCCESS',
+      };
+    } catch (error) {
+      console.log('ERRORS_VERIFY_ACCOUNT', error);
+      throw new BadRequestException(error);
     }
   }
 }

@@ -6,6 +6,7 @@ import { AppModule } from './app.module';
 
 async function bootstrap() {
   const app = await NestFactory.create(AppModule);
+  app.setGlobalPrefix('/api');
   const configDocument = new DocumentBuilder()
     .setTitle('Api Documentation')
     .setDescription('App API description')
@@ -20,7 +21,6 @@ async function bootstrap() {
     credentials: true,
   });
 
-  app.setGlobalPrefix('api/');
   const port = +config.get('PORT') || 5000;
   app.useGlobalPipes(new ValidationPipe());
   await app.listen(port, () => {
