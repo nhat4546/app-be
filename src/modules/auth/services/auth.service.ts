@@ -9,9 +9,12 @@ import * as crypto from 'crypto';
 import { MoreThan, Repository } from 'typeorm';
 
 import { ConfigService } from '@nestjs/config';
+import { JwtService } from '@nestjs/jwt';
 import { AccountEntity } from 'src/modules/account/entities/account.entity';
 import { MailService } from 'src/modules/mail/services/mail.service';
 import { UserEntity } from 'src/modules/user/entities/user.entity';
+import { LoginInput } from '../dtos/auth-login-input.dto';
+
 import { RegisterInput } from '../dtos/auth-register-input.dto';
 @Injectable()
 export class AuthService {
@@ -22,7 +25,30 @@ export class AuthService {
     private userRepository: Repository<UserEntity>,
     private mailService: MailService,
     private configService: ConfigService,
+    private jwtService: JwtService,
   ) {}
+
+  handleResponseLogin(payload: { id: number; email: string }) {
+    const access_time = this.configService.get('JWT_ACCESS_TOKEN_EXPIRE_TIME');
+    const refresh_time = this.configService.get(
+      'JWT_REFRESH_TOKEN_EXPIRE_TIME',
+    );
+    const accessToken = this.jwtService.sign(payload, {
+      privateKey: this.configService.get('JWT_ACCESS_TOKEN'),
+      expiresIn: Number(this.configService.get('JWT_ACCESS_TOKEN_EXPIRE_TIME')),
+    });
+    const refreshToken = this.jwtService.sign(payload, {
+      privateKey: this.configService.get('JWT_REFRESH_TOKEN'),
+      expiresIn: Number(
+        this.configService.get('JWT_REFRESH_TOKEN_EXPIRE_TIME'),
+      ),
+    });
+    const time = new Date();
+    const expiredAccess = new Date(+time.getTime() + +access_time);
+    const expiredRefresh = new Date(+time.getTime() + +refresh_time);
+    return { accessToken, refreshToken, expiredAccess, expiredRefresh };
+  }
+
   async register(input: RegisterInput) {
     try {
       const email = input.email.toLocaleLowerCase();
@@ -87,6 +113,44 @@ export class AuthService {
       };
     } catch (error) {
       console.log('ERRORS_VERIFY_ACCOUNT', error);
+      throw new BadRequestException(error);
+    }
+  }
+
+  async login(input: LoginInput) {
+    try {
+      const email = input.email.toLowerCase();
+      const password = input.password;
+
+      const user = await this.userRepository.findOneBy({ email });
+      if (!user) {
+        throw new BadRequestException('EMAIL_OR_PASSWORD_INCORRECT');
+      }
+
+      const account = await this.accountRepository.findOneBy({
+        id: user.id,
+      });
+      if (!account) {
+        throw new BadRequestException('EMAIL_OR_PASSWORD_INCORRECT');
+      }
+
+      const isMatch = bcrypt.compareSync(password, account.password);
+      if (!isMatch) {
+        throw new BadRequestException('EMAIL_OR_PASSWORD_INCORRECT');
+      }
+
+      const data = this.handleResponseLogin({
+        id: account.id,
+        email: user.email,
+      });
+
+      return {
+        status: 200,
+        message: 'LOGIN_SUCCESS',
+        data,
+      };
+    } catch (error) {
+      console.log('LOGIN_FAIL', error);
       throw new BadRequestException(error);
     }
   }
