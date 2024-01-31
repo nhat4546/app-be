@@ -1,5 +1,6 @@
 import { Module } from '@nestjs/common';
 import { ConfigModule } from '@nestjs/config';
+import { MulterModule } from '@nestjs/platform-express';
 import { TypeOrmModule } from '@nestjs/typeorm';
 import { AccountModule } from './modules/account/account.module';
 import { AuthModule } from './modules/auth/auth.module';
@@ -22,6 +23,9 @@ import { MailModule } from './modules/mail/mail.module';
       database: 'app',
       entities: ['dist/**/*.entity.js'],
       synchronize: true,
+    }),
+    MulterModule.register({
+      dest: './images',
     }),
   ],
   controllers: [],
