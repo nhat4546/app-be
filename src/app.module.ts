@@ -4,6 +4,7 @@ import { MulterModule } from '@nestjs/platform-express';
 import { TypeOrmModule } from '@nestjs/typeorm';
 import { AccountModule } from './modules/account/account.module';
 import { AuthModule } from './modules/auth/auth.module';
+import { FileModule } from './modules/file/file.module';
 import { MailModule } from './modules/mail/mail.module';
 
 @Module({
@@ -11,6 +12,7 @@ import { MailModule } from './modules/mail/mail.module';
     AuthModule,
     AccountModule,
     MailModule,
+    FileModule,
     ConfigModule.forRoot({
       isGlobal: true,
     }),

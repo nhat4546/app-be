@@ -85,8 +85,7 @@ export class AccountController {
       storage: diskStorage({
         destination: (_, __, callback) => {
           // Synchronously retrieve the environment variable
-          const destinationPath =
-            process.env.UPLOADED_FILES_DESTINATION || 'images';
+          const destinationPath = process.env.UPLOADED_FILES_DESTINATION;
 
           if (!destinationPath) {
             return callback(
