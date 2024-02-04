@@ -15,6 +15,7 @@ import { MailService } from 'src/modules/mail/services/mail.service';
 import { UserEntity } from 'src/modules/user/entities/user.entity';
 import { LoginInput } from '../dtos/auth-login-input.dto';
 
+import { ResponseFormat } from 'src/shared/common';
 import { RegisterInput } from '../dtos/auth-register-input.dto';
 @Injectable()
 export class AuthService {
@@ -49,7 +50,7 @@ export class AuthService {
     return { accessToken, refreshToken, expiredAccess, expiredRefresh };
   }
 
-  async register(input: RegisterInput) {
+  async register(input: RegisterInput): Promise<ResponseFormat> {
     try {
       const email = input.email.toLocaleLowerCase();
       const password = input.password;
@@ -91,7 +92,7 @@ export class AuthService {
     }
   }
 
-  async verifyRegister(code: string) {
+  async verifyRegister(code: string): Promise<ResponseFormat> {
     try {
       const account = await this.accountRepository.findOneBy({
         token: code,
@@ -117,7 +118,7 @@ export class AuthService {
     }
   }
 
-  async login(input: LoginInput) {
+  async login(input: LoginInput): Promise<ResponseFormat> {
     try {
       const email = input.email.toLowerCase();
       const password = input.password;

@@ -1,13 +1,12 @@
 import {
-  Injectable,
   BadRequestException,
+  Injectable,
   NotFoundException,
-  Inject,
 } from '@nestjs/common';
-import { REQUEST } from '@nestjs/core';
 import { InjectRepository } from '@nestjs/typeorm';
 import { plainToClass } from 'class-transformer';
 import { UserEntity } from 'src/modules/user/entities/user.entity';
+import { ResponseFormat } from 'src/shared/common';
 import { Repository } from 'typeorm';
 import { AccountDetailOutput } from '../dtos/account-detail-output.dto';
 import { AccountEditInput } from '../dtos/account-edit-input.dto';
@@ -49,7 +48,10 @@ export class AccountService {
     });
   }
 
-  async getDetailAccount(req: { id: number; email: string }) {
+  async getDetailAccount(req: {
+    id: number;
+    email: string;
+  }): Promise<ResponseFormat> {
     try {
       const account = await this.getAccountById(req.id);
 
@@ -68,16 +70,20 @@ export class AccountService {
     acc: { id: number; email: string },
     req: AccountEditInput,
     filePath: string,
-  ) {
+  ): Promise<ResponseFormat> {
     try {
       const account = await this.getAccountById(acc.id);
       account.avatarUrl = filePath || null;
       account.user_name = req.userName || null;
       await this.accountRepository.save(account);
 
-      return plainToClass(AccountDetailOutput, account, {
-        excludeExtraneousValues: true,
-      });
+      return {
+        status: 200,
+        message: 'EDIT_ACCOUNT_SUCCESS',
+        data: plainToClass(AccountDetailOutput, account, {
+          excludeExtraneousValues: true,
+        }),
+      };
     } catch (error) {
       console.log('EDIT_PROFILE_FAIL', error);
       throw new BadRequestException(error);
