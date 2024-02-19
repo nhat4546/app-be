@@ -11,10 +11,11 @@ import { MoreThan, Repository } from 'typeorm';
 import { ConfigService } from '@nestjs/config';
 import { JwtService } from '@nestjs/jwt';
 import { AccountEntity } from 'src/modules/account/entities/account.entity';
+import { UserEntity } from 'src/modules/account/entities/user.entity';
 import { MailService } from 'src/modules/mail/services/mail.service';
-import { UserEntity } from 'src/modules/user/entities/user.entity';
 import { LoginInput } from '../dtos/auth-login-input.dto';
 
+import { CheckingInformationService } from 'src/modules/account/services/checking-information.service';
 import { ResponseFormat } from 'src/shared/common';
 import { RegisterInput } from '../dtos/auth-register-input.dto';
 @Injectable()
@@ -27,6 +28,7 @@ export class AuthService {
     private mailService: MailService,
     private configService: ConfigService,
     private jwtService: JwtService,
+    private checkingInformationService: CheckingInformationService,
   ) {}
 
   handleResponseLogin(payload: { id: number; email: string }) {
@@ -139,6 +141,9 @@ export class AuthService {
       if (!isMatch) {
         throw new BadRequestException('EMAIL_OR_PASSWORD_INCORRECT');
       }
+
+      // update check in - check out
+      await this.checkingInformationService.updateCheckingCheckout(account.id);
 
       const data = this.handleResponseLogin({
         id: account.id,

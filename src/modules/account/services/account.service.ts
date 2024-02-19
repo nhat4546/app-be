@@ -5,7 +5,7 @@ import {
 } from '@nestjs/common';
 import { InjectRepository } from '@nestjs/typeorm';
 import { plainToClass } from 'class-transformer';
-import { UserEntity } from 'src/modules/user/entities/user.entity';
+import { UserEntity } from 'src/modules/account/entities/user.entity';
 import { ResponseFormat } from 'src/shared/common';
 import { Repository } from 'typeorm';
 import { AccountDetailOutput } from '../dtos/account-detail-output.dto';
@@ -53,7 +53,16 @@ export class AccountService {
     email: string;
   }): Promise<ResponseFormat> {
     try {
-      const account = await this.getAccountById(req.id);
+      const account = await this.accountRepository.findOne({
+        where: { id: req.id },
+        relations: {
+          checkingInformation: true,
+        },
+      });
+
+      if (!account) {
+        throw new NotFoundException('ACCOUNT_NOT_FOUND');
+      }
 
       return {
         status: 200,

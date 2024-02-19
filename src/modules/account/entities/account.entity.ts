@@ -1,5 +1,12 @@
 import { BaseEntity } from 'src/base/entities/base.entity';
-import { Column, Entity, PrimaryGeneratedColumn } from 'typeorm';
+import {
+  Column,
+  Entity,
+  JoinColumn,
+  OneToOne,
+  PrimaryGeneratedColumn,
+} from 'typeorm';
+import { CheckingInformationEntity } from './checking-information.entity';
 
 @Entity({ name: 'account' })
 export class AccountEntity extends BaseEntity {
@@ -21,4 +28,12 @@ export class AccountEntity extends BaseEntity {
 
   @Column({ name: 'expire_verify', nullable: true })
   expireVerify: Date;
+
+  @Column('varchar', { nullable: true })
+  @JoinColumn()
+  @OneToOne(
+    () => CheckingInformationEntity,
+    (checking_information) => checking_information.id,
+  )
+  checkingInformation: CheckingInformationEntity;
 }
