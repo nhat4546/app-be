@@ -1,6 +1,7 @@
 import { BadRequestException, Injectable } from '@nestjs/common';
 import { InjectRepository } from '@nestjs/typeorm';
-import { Repository } from 'typeorm';
+import * as moment from 'moment';
+import { Between, Repository } from 'typeorm';
 import { CheckingInformationEntity } from '../entities/checking-information.entity';
 
 @Injectable()
@@ -12,38 +13,31 @@ export class CheckingInformationService {
 
   async updateCheckingCheckout(id: number) {
     try {
+      const currentDateStart = moment().startOf('day').toDate();
+      const currentDateEnd = moment().endOf('day').toDate();
+
       const info = await this.checkingInformationRepository.findOne({
-        where: { id },
+        where: {
+          accountId: id,
+          checkIn: Between(currentDateStart, currentDateEnd),
+        },
       });
 
       if (!info) {
+        const timeAt8h = moment().set({ hour: 8, minute: 0, second: 0 });
+        const timeNow = moment();
+        const timeWorkStart = timeNow <= timeAt8h ? timeAt8h : timeNow;
+
         const firstCheck = new CheckingInformationEntity();
-
-        const currentDate = new Date();
-        currentDate.setHours(8, 0, 0, 0);
-        const timeAt8h = currentDate.getTime() / 1000;
-        const timeCheckIn = new Date().getTime() / 1000;
-
-        firstCheck.checkIn =
-          timeCheckIn <= timeAt8h ? new Date(timeAt8h) : new Date();
-        firstCheck.workStart = firstCheck.checkIn;
-        firstCheck.workEnd = new Date(timeCheckIn * 9.5 * 60);
+        firstCheck.checkIn = timeNow.toDate();
+        firstCheck.workStart = timeWorkStart.toDate();
+        firstCheck.workEnd = timeWorkStart.add(9.5, 'hours').toDate();
+        firstCheck.accountId = id;
 
         return await this.checkingInformationRepository.save(firstCheck);
       }
 
-      // if not check in mean fist check in
-      // else check in from twice last check in = check out
-      info.checkOut = new Date();
-
-      // check first check in if before 8h => check in = 8h
-      // const currentDate = new Date();
-      // currentDate.setHours(8, 0, 0, 0);
-      // const timeAt8h = currentDate.getTime() / 1000;
-      // const checkInTime = information.checkIn.getTime() / 1000;
-      // if (checkInTime <= timeAt8h) {
-      //   information.checkIn = currentDate;
-      // }
+      info.checkOut = moment().toDate();
 
       await this.checkingInformationRepository.save(info);
     } catch (error) {

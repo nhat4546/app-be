@@ -3,7 +3,7 @@ import {
   Column,
   Entity,
   JoinColumn,
-  OneToOne,
+  ManyToOne,
   PrimaryGeneratedColumn,
 } from 'typeorm';
 import { AccountEntity } from './account.entity';
@@ -15,20 +15,20 @@ export class CheckingInformationEntity extends BaseEntity {
   @PrimaryGeneratedColumn()
   id: number;
 
-  @Column('varchar', { nullable: true })
-  @OneToOne(() => AccountEntity, (account) => account.id)
-  @JoinColumn()
-  account: AccountEntity;
+  @Column({ name: 'account_id', nullable: true })
+  @JoinColumn({ name: 'account_id' })
+  @ManyToOne(() => AccountEntity, (account) => account.id)
+  accountId: number;
 
-  @Column({ name: 'check_in' })
+  @Column({ name: 'check_in', type: 'timestamp' })
   checkIn: Date;
 
-  @Column({ name: 'check_out', nullable: true })
+  @Column({ name: 'check_out', nullable: true, type: 'timestamp' })
   checkOut: Date;
 
-  @Column({ name: 'work_start' })
+  @Column({ name: 'work_start', type: 'timestamp' })
   workStart: Date;
 
-  @Column({ name: 'work_end' })
+  @Column({ name: 'work_end', type: 'timestamp' })
   workEnd: Date;
 }
