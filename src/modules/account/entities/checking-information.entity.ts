@@ -26,9 +26,9 @@ export class CheckingInformationEntity extends BaseEntity {
   @Column({ name: 'check_out', nullable: true, type: 'timestamp' })
   checkOut: Date;
 
-  @Column({ name: 'work_start', type: 'timestamp' })
+  @Column({ name: 'work_start', nullable: true, type: 'timestamp' })
   workStart: Date;
 
-  @Column({ name: 'work_end', type: 'timestamp' })
+  @Column({ name: 'work_end', nullable: true, type: 'timestamp' })
   workEnd: Date;
 }

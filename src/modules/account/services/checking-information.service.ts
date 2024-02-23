@@ -25,13 +25,30 @@ export class CheckingInformationService {
 
       if (!info) {
         const timeAt8h = moment().set({ hour: 8, minute: 0, second: 0 });
+        const timeAt18h30 = moment().set({ hour: 18, minute: 30, second: 0 });
         const timeNow = moment();
-        const timeWorkStart = timeNow <= timeAt8h ? timeAt8h : timeNow;
+
+        let timeWorkStart: moment.Moment | null;
+        if (timeNow <= timeAt8h) {
+          timeWorkStart = timeAt8h;
+        } else if (timeNow <= timeAt18h30) {
+          timeWorkStart = timeNow;
+        } else {
+          timeWorkStart = null;
+        }
+
+        let timeWorkEnd: moment.Moment | null;
+        if (timeWorkStart) {
+          timeWorkEnd = timeWorkStart.add(9.5, 'hours');
+          if (timeAt18h30 < timeWorkEnd) {
+            timeWorkEnd = timeAt18h30;
+          }
+        }
 
         const firstCheck = new CheckingInformationEntity();
         firstCheck.checkIn = timeNow.toDate();
-        firstCheck.workStart = timeWorkStart.toDate();
-        firstCheck.workEnd = timeWorkStart.add(9.5, 'hours').toDate();
+        firstCheck.workStart = timeWorkStart?.toDate();
+        firstCheck.workEnd = timeWorkEnd?.toDate();
         firstCheck.accountId = id;
 
         return await this.checkingInformationRepository.save(firstCheck);
