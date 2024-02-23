@@ -5,9 +5,11 @@ import { AccountEntity } from '../account/entities/account.entity';
 import { UserEntity } from './entities/user.entity';
 import { AccountController } from './controllers/account.controller';
 import { AccountService } from './services/account.service';
+import { UserController } from './controllers/user.controller';
+import { UserService } from './services/user.service';
 @Module({
-  controllers: [AccountController],
-  providers: [JwtService, AccountService],
+  controllers: [AccountController, UserController],
+  providers: [JwtService, AccountService, UserService],
   imports: [TypeOrmModule.forFeature([UserEntity, AccountEntity])],
   exports: [],
 })

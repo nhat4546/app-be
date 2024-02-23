@@ -7,6 +7,8 @@ import { AuthModule } from './modules/auth/auth.module';
 import { BlogModule } from './modules/blog/blog.module';
 import { FileModule } from './modules/file/file.module';
 import { MailModule } from './modules/mail/mail.module';
+import { ProjectModule } from './modules/project/project.module';
+import { OverTimeModule } from './modules/overtime/overtime.module';
 
 @Module({
   imports: [
@@ -15,6 +17,8 @@ import { MailModule } from './modules/mail/mail.module';
     MailModule,
     FileModule,
     BlogModule,
+    ProjectModule,
+    OverTimeModule,
     ConfigModule.forRoot({
       isGlobal: true,
     }),

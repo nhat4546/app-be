@@ -79,6 +79,7 @@ export class AuthService {
 
       user.email = email;
       user.accountId = account.id;
+      user.role = input.role;
       await this.userRepository.save(user);
 
       const confirm_url = `${this.configService.get('PUBLIC_URL')}/register/verify?code=${account.token}`;
