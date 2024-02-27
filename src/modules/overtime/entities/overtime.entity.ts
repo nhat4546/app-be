@@ -10,7 +10,6 @@ export class OverTimeEntity extends BaseEntity {
   @PrimaryGeneratedColumn()
   id: number;
 
-  @Column('numeric', { name: 'project' })
   @ManyToOne(() => ProjectEntity, (project) => project.id)
   project: ProjectEntity;
 
@@ -21,7 +20,6 @@ export class OverTimeEntity extends BaseEntity {
   })
   status: OVER_TIME_STATUS;
 
-  @Column('numeric', { name: 'user' })
   @ManyToOne(() => UserEntity, (user) => user.id)
   user: UserEntity;
 

@@ -29,9 +29,7 @@ export class AccountService {
       throw new NotFoundException('ACCOUNT_NOT_FOUND');
     }
 
-    return plainToClass(AccountDetailOutput, account, {
-      excludeExtraneousValues: true,
-    });
+    return account;
   }
 
   async getAccountByEmail(email: string) {
@@ -83,7 +81,7 @@ export class AccountService {
     try {
       const account = await this.getAccountById(acc.id);
       account.avatarUrl = filePath || null;
-      account.user_name = req.userName || null;
+      account.userName = req.userName || null;
       await this.accountRepository.save(account);
 
       return {

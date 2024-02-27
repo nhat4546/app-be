@@ -1,4 +1,5 @@
 import { BaseEntity } from 'src/base/entities/base.entity';
+import { OverTimeEntity } from 'src/modules/overtime/entities/overtime.entity';
 import { Column, Entity, OneToMany, PrimaryGeneratedColumn } from 'typeorm';
 import { CheckingInformationEntity } from './checking-information.entity';
 
@@ -23,10 +24,12 @@ export class AccountEntity extends BaseEntity {
   @Column({ name: 'expire_verify', nullable: true })
   expireVerify: Date;
 
-  @Column('numeric', { nullable: true, name: 'checking_information' })
   @OneToMany(
     () => CheckingInformationEntity,
     (checking_information) => checking_information.id,
   )
   checkingInformation: CheckingInformationEntity;
+
+  @OneToMany(() => OverTimeEntity, (ot) => ot.id)
+  overtimes: OverTimeEntity[];
 }

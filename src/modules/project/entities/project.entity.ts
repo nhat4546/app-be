@@ -1,10 +1,12 @@
 import { Max } from 'class-validator';
 import { BaseEntity } from 'src/base/entities/base.entity';
 import { UserEntity } from 'src/modules/account/entities/user.entity';
+import { OverTimeEntity } from 'src/modules/overtime/entities/overtime.entity';
 import {
   Column,
   Entity,
   ManyToOne,
+  OneToMany,
   OneToOne,
   PrimaryGeneratedColumn,
 } from 'typeorm';
@@ -18,11 +20,12 @@ export class ProjectEntity extends BaseEntity {
   @Max(200)
   projectName: string;
 
-  @Column('numeric', { name: 'division_manager' })
   @ManyToOne(() => UserEntity, (user) => user.id)
-  divisionManager: number;
+  divisionManager: UserEntity;
 
-  @Column('numeric', { name: 'project_manager' })
   @OneToOne(() => UserEntity, (user) => user.id)
-  projectManager: number;
+  projectManager: UserEntity;
+
+  @OneToMany(() => OverTimeEntity, (ot) => ot.id)
+  overtimes: OverTimeEntity[];
 }

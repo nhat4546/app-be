@@ -4,12 +4,13 @@ import {
   NotFoundException,
 } from '@nestjs/common';
 import { InjectRepository } from '@nestjs/typeorm';
-import { UserEntity } from 'src/modules/account/entities/user.entity';
-import { Repository } from 'typeorm';
-import { ProjectEntity } from '../entities/project.entity';
-import { CreateProjectInput } from '../dtos/create-project-input.dto';
-import { ResponseFormat } from 'src/shared/common';
 import { ROLE } from 'src/modules/account/constants';
+import { UserEntity } from 'src/modules/account/entities/user.entity';
+import { ResponseFormat } from 'src/shared/common';
+import { ILike, Repository } from 'typeorm';
+import { CreateProjectInput } from '../dtos/create-project-input.dto';
+import { ListProjectParams } from '../dtos/list-project-params';
+import { ProjectEntity } from '../entities/project.entity';
 
 @Injectable()
 export class ProjectService {
@@ -19,6 +20,22 @@ export class ProjectService {
     @InjectRepository(UserEntity)
     private userRepository: Repository<UserEntity>,
   ) {}
+
+  async getProjectById(id: number) {
+    try {
+      const project = await this.projectRepository.findOneBy({ id });
+
+      if (!project) {
+        throw new NotFoundException('NOT_FOUND_PROJECT');
+      }
+
+      return project;
+    } catch (error) {
+      console.log('GET_PROJECT_FAIL', error);
+      throw new BadRequestException(error);
+    }
+  }
+
   async createProject(input: CreateProjectInput): Promise<ResponseFormat> {
     try {
       const divisionManager = await this.userRepository.findOne({
@@ -45,8 +62,8 @@ export class ProjectService {
 
       const project = new ProjectEntity();
       project.projectName = input.projectName;
-      project.divisionManager = input.divisionManagerId;
-      project.projectManager = input.projectManagerId;
+      project.divisionManager = divisionManager;
+      project.projectManager = projectManager;
 
       await this.projectRepository.save(project);
 
@@ -57,6 +74,40 @@ export class ProjectService {
       };
     } catch (error) {
       console.log('CREATE_PROJECT_FAIL', error);
+      throw new BadRequestException(error);
+    }
+  }
+
+  async listProject(input: ListProjectParams): Promise<ResponseFormat> {
+    try {
+      let query;
+      if (input.projectName) {
+        query = {
+          where: {
+            projectName: ILike(`%${input.projectName}%`),
+          },
+        };
+      }
+
+      const [list, total] = await this.projectRepository.findAndCount({
+        take: input.limit,
+        skip: input.limit * input.page,
+        ...query,
+      });
+
+      return {
+        status: 200,
+        message: 'LIST_PROJECT_SUCCESS',
+        data: list,
+        pagination: {
+          current_page: input.page + 1,
+          last_page: Math.ceil(total / 10),
+          per_page: 10,
+          total,
+        },
+      };
+    } catch (error) {
+      console.log('LIST_PROJECT_FAIL', error);
       throw new BadRequestException(error);
     }
   }

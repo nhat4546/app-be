@@ -3,7 +3,7 @@ import {
   Body,
   Controller,
   Get,
-  Post,
+  Put,
   Request,
   UploadedFile,
   UseGuards,
@@ -29,7 +29,7 @@ export class AccountController {
   }
 
   @UseGuards(AuthGuard)
-  @Post('edit')
+  @Put()
   @ApiConsumes('multipart/form-data')
   // @UseInterceptors(
   //   FileFieldsInterceptor([{ name: 'file', maxCount: 1 }], {
