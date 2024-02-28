@@ -11,6 +11,7 @@ import { CreateOvertime } from '../dtos/overtime-req';
 import { OverTimeEntity } from '../entities/overtime.entity';
 import { AccountService } from 'src/modules/account/services/account.service';
 import { ProjectEntity } from 'src/modules/project/entities/project.entity';
+import { OVER_TIME_STATUS } from '../constants';
 
 @Injectable()
 export class OvertimeService {
@@ -105,6 +106,44 @@ export class OvertimeService {
       };
     } catch (error) {
       console.log('GET_REQUEST_OVERTIME_DM_FAIL', error);
+      throw new BadRequestException(error);
+    }
+  }
+
+  async PMAcceptRequest(
+    pm: { id: number; email: string },
+    idOvertime: number,
+    isAccept: boolean,
+  ): Promise<ResponseFormat> {
+    try {
+      const pmAccount = await this.accountService.getAccountById(pm.id);
+      if (!pmAccount) {
+        throw new NotFoundException('NOT_FOUND_ACCOUNT');
+      }
+
+      const overtime = await this.overtimeRepository
+        .createQueryBuilder('ot')
+        .leftJoinAndSelect('ot.project', 'p')
+        .where('p.projectManager = :id', { id: pm.id })
+        .where('ot.id = :id', { id: idOvertime })
+        .getOne();
+
+      if (!overtime) {
+        throw new NotFoundException('NOT_FOUND_OVERTIME');
+      }
+      overtime.status = isAccept
+        ? OVER_TIME_STATUS.CONFIRMED
+        : OVER_TIME_STATUS.CANCEL;
+
+      await this.overtimeRepository.save(overtime);
+
+      return {
+        status: 200,
+        message: 'UPDATE_OVERTIME_PM_SUCCESS',
+        data: overtime,
+      };
+    } catch (error) {
+      console.log('UPDATE_OVERTIME_PM_FAIL', error);
       throw new BadRequestException(error);
     }
   }

@@ -22,3 +22,7 @@ export class CreateOvertime {
   @MaxLength(200)
   reason: string;
 }
+
+export class ApproveOvertime {
+  isAccept: boolean;
+}
