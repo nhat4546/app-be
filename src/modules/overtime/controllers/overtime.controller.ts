@@ -32,4 +32,20 @@ export class OvertimeController {
   ) {
     return await this.overtimeService.createOvertime(input, req?.account);
   }
+
+  @Get('/request-for-pm')
+  @UseGuards(AuthGuard)
+  async getRequestForPM(
+    @Request() req: { account: { id: number; email: string } },
+  ) {
+    return await this.overtimeService.getRequestForPM(req?.account);
+  }
+
+  @Get('/request-for-dm')
+  @UseGuards(AuthGuard)
+  async getRequestForDM(
+    @Request() req: { account: { id: number; email: string } },
+  ) {
+    return await this.overtimeService.getRequestForDM(req?.account);
+  }
 }

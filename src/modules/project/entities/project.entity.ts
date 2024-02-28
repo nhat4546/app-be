@@ -7,7 +7,6 @@ import {
   Entity,
   ManyToOne,
   OneToMany,
-  OneToOne,
   PrimaryGeneratedColumn,
 } from 'typeorm';
 
@@ -23,9 +22,9 @@ export class ProjectEntity extends BaseEntity {
   @ManyToOne(() => UserEntity, (user) => user.id)
   divisionManager: UserEntity;
 
-  @OneToOne(() => UserEntity, (user) => user.id)
+  @ManyToOne(() => UserEntity, (user) => user.id)
   projectManager: UserEntity;
 
-  @OneToMany(() => OverTimeEntity, (ot) => ot.id)
+  @OneToMany(() => OverTimeEntity, (ot) => ot.project)
   overtimes: OverTimeEntity[];
 }

@@ -10,7 +10,7 @@ export class OverTimeEntity extends BaseEntity {
   @PrimaryGeneratedColumn()
   id: number;
 
-  @ManyToOne(() => ProjectEntity, (project) => project.id)
+  @ManyToOne(() => ProjectEntity, (project) => project.overtimes)
   project: ProjectEntity;
 
   @Column({

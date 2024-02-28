@@ -10,12 +10,15 @@ import { Repository } from 'typeorm';
 import { CreateOvertime } from '../dtos/overtime-req';
 import { OverTimeEntity } from '../entities/overtime.entity';
 import { AccountService } from 'src/modules/account/services/account.service';
+import { ProjectEntity } from 'src/modules/project/entities/project.entity';
 
 @Injectable()
 export class OvertimeService {
   constructor(
     @InjectRepository(OverTimeEntity)
     private overtimeRepository: Repository<OverTimeEntity>,
+    @InjectRepository(OverTimeEntity)
+    private projectRepository: Repository<ProjectEntity>,
     private projectService: ProjectService,
     private accountService: AccountService,
   ) {}
@@ -24,8 +27,8 @@ export class OvertimeService {
     try {
       const listOvertime = await this.overtimeRepository
         .createQueryBuilder('ot')
-        // .leftJoinAndSelect('ot.user', 'user')
-        .leftJoinAndSelect('ot.project', 'project')
+        .leftJoinAndSelect('ot.project', 'p')
+        .leftJoinAndSelect('p.projectManager', 'projectManager')
         .where('ot.userId = :userId', { userId })
         .getMany();
 
@@ -79,6 +82,52 @@ export class OvertimeService {
       };
     } catch (error) {
       console.log('CREATE_OVERTIME_FAIL', error);
+      throw new BadRequestException(error);
+    }
+  }
+
+  async getRequestForPM(account: {
+    id: number;
+    email: string;
+  }): Promise<ResponseFormat> {
+    try {
+      const listOvertime = await this.overtimeRepository
+        .createQueryBuilder('ot')
+        .leftJoinAndSelect('ot.user', 'u')
+        .leftJoinAndSelect('ot.project', 'p')
+        .where('p.projectManager = :id', { id: account.id })
+        .getMany();
+
+      return {
+        status: 200,
+        message: 'GET_REQUEST_OVERTIME_PM_SUCCESS',
+        data: listOvertime,
+      };
+    } catch (error) {
+      console.log('GET_REQUEST_OVERTIME_DM_FAIL', error);
+      throw new BadRequestException(error);
+    }
+  }
+
+  async getRequestForDM(account: {
+    id: number;
+    email: string;
+  }): Promise<ResponseFormat> {
+    try {
+      const listOvertime = await this.overtimeRepository
+        .createQueryBuilder('ot')
+        .leftJoinAndSelect('ot.user', 'u')
+        .leftJoinAndSelect('ot.project', 'p')
+        .where('p.divisionManager = :id', { id: account.id })
+        .getMany();
+
+      return {
+        status: 200,
+        message: 'GET_REQUEST_OVERTIME_DM_SUCCESS',
+        data: listOvertime,
+      };
+    } catch (error) {
+      console.log('GET_REQUEST_OVERTIME_DM_FAIL', error);
       throw new BadRequestException(error);
     }
   }

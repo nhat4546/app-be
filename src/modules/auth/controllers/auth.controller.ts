@@ -1,5 +1,5 @@
 import { Body, Controller, Get, Param, Post } from '@nestjs/common';
-import { ApiTags } from '@nestjs/swagger';
+import { ApiParam, ApiTags } from '@nestjs/swagger';
 import { LoginInput } from '../dtos/auth-login-input.dto';
 import { RegisterInput } from '../dtos/auth-register-input.dto';
 import { AuthService } from '../services/auth.service';
@@ -14,6 +14,7 @@ export class AuthController {
   }
 
   @Get('/register/verify/:code')
+  @ApiParam({ name: 'code', required: true })
   async verifyRegister(@Param() params: { code: string }) {
     return await this.authService.verifyRegister(params.code);
   }
