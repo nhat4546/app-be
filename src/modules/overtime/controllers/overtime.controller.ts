@@ -17,23 +17,6 @@ import { OvertimeService } from '../services/overtime.service';
 export class OvertimeController {
   constructor(private overtimeService: OvertimeService) {}
 
-  @Get()
-  @UseGuards(AuthGuard)
-  async getMyOvertime(
-    @Request() req: { account: { id: number; email: string } },
-  ) {
-    return await this.overtimeService.getMyOvertime(req?.account?.id);
-  }
-
-  @Post()
-  @UseGuards(AuthGuard)
-  async createOvertime(
-    @Body() input: CreateOvertime,
-    @Request() req: { account: { id: number; email: string } },
-  ) {
-    return await this.overtimeService.createOvertime(input, req?.account);
-  }
-
   @Get('/request-for-pm')
   @UseGuards(AuthGuard)
   async getRequestForPM(
@@ -62,5 +45,45 @@ export class OvertimeController {
     @Request() req: { account: { id: number; email: string } },
   ) {
     return await this.overtimeService.getRequestForDM(req?.account);
+  }
+
+  @Post('/dm-accept-request/:id')
+  @UseGuards(AuthGuard)
+  async DMAcceptRequest(
+    @Request() req: { account: { id: number; email: string } },
+    @Param('id') id: number,
+    @Body() input: ApproveOvertime,
+  ) {
+    return await this.overtimeService.DMAcceptRequest(
+      req?.account,
+      +id,
+      input.isAccept,
+    );
+  }
+
+  @Get()
+  @UseGuards(AuthGuard)
+  async getMyOvertime(
+    @Request() req: { account: { id: number; email: string } },
+  ) {
+    return await this.overtimeService.getMyOvertime(req?.account?.id);
+  }
+
+  @Get('/:id')
+  @UseGuards(AuthGuard)
+  async getMyOvertimeById(
+    @Param('id') id: number,
+    @Request() req: { account: { id: number; email: string } },
+  ) {
+    return await this.overtimeService.getMyOvertimeById(req?.account?.id, +id);
+  }
+
+  @Post()
+  @UseGuards(AuthGuard)
+  async createOvertime(
+    @Body() input: CreateOvertime,
+    @Request() req: { account: { id: number; email: string } },
+  ) {
+    return await this.overtimeService.createOvertime(input, req?.account);
   }
 }

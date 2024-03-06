@@ -12,6 +12,7 @@ import { OverTimeEntity } from '../entities/overtime.entity';
 import { AccountService } from 'src/modules/account/services/account.service';
 import { ProjectEntity } from 'src/modules/project/entities/project.entity';
 import { OVER_TIME_STATUS } from '../constants';
+import { ROLE } from 'src/modules/account/constants';
 
 @Injectable()
 export class OvertimeService {
@@ -30,6 +31,7 @@ export class OvertimeService {
         .createQueryBuilder('ot')
         .leftJoinAndSelect('ot.project', 'p')
         .leftJoinAndSelect('p.projectManager', 'projectManager')
+        .leftJoinAndSelect('p.divisionManager', 'divisionManager')
         .where('ot.userId = :userId', { userId })
         .getMany();
 
@@ -44,9 +46,14 @@ export class OvertimeService {
     }
   }
 
-  async getOvertimeById(id: number) {
+  async getMyOvertimeById(userId: number, id: number) {
     try {
-      const overtime = await this.overtimeRepository.findOneBy({ id });
+      const overtime = await this.overtimeRepository
+        .createQueryBuilder('ot')
+        .leftJoinAndSelect('ot.user', 'u')
+        .where('u.id = :id', { id: userId })
+        .where('ot.id = :id', { id: id })
+        .getOne();
 
       if (!overtime) {
         throw new NotFoundException('NOT_FOUND_OVERTIME');
@@ -91,6 +98,11 @@ export class OvertimeService {
     id: number;
     email: string;
   }): Promise<ResponseFormat> {
+    const pm = await this.accountService.getAccountById(account.id);
+    if (!pm || pm.role !== ROLE.PROJECT_MANAGE) {
+      throw new NotFoundException('NOT_FOUND_ACCOUNT_PM');
+    }
+
     try {
       const listOvertime = await this.overtimeRepository
         .createQueryBuilder('ot')
@@ -117,8 +129,8 @@ export class OvertimeService {
   ): Promise<ResponseFormat> {
     try {
       const pmAccount = await this.accountService.getAccountById(pm.id);
-      if (!pmAccount) {
-        throw new NotFoundException('NOT_FOUND_ACCOUNT');
+      if (!pmAccount || pmAccount.role !== ROLE.PROJECT_MANAGE) {
+        throw new NotFoundException('NOT_FOUND_ACCOUNT_PM');
       }
 
       const overtime = await this.overtimeRepository
@@ -139,11 +151,11 @@ export class OvertimeService {
 
       return {
         status: 200,
-        message: 'UPDATE_OVERTIME_PM_SUCCESS',
+        message: 'UPDATE_OVERTIME_BY_PM_SUCCESS',
         data: overtime,
       };
     } catch (error) {
-      console.log('UPDATE_OVERTIME_PM_FAIL', error);
+      console.log('UPDATE_OVERTIME_BY_PM_FAIL', error);
       throw new BadRequestException(error);
     }
   }
@@ -162,11 +174,49 @@ export class OvertimeService {
 
       return {
         status: 200,
-        message: 'GET_REQUEST_OVERTIME_DM_SUCCESS',
+        message: 'GET_REQUEST_OVERTIME_BY_DM_SUCCESS',
         data: listOvertime,
       };
     } catch (error) {
-      console.log('GET_REQUEST_OVERTIME_DM_FAIL', error);
+      console.log('GET_REQUEST_OVERTIME_BY_DM_FAIL', error);
+      throw new BadRequestException(error);
+    }
+  }
+
+  async DMAcceptRequest(
+    dm: { id: number; email: string },
+    idOvertime: number,
+    isAccept: boolean,
+  ): Promise<ResponseFormat> {
+    try {
+      const dmAccount = await this.accountService.getAccountById(dm.id);
+      if (!dmAccount || dmAccount.role !== ROLE.DIVISION_MANAGER) {
+        throw new NotFoundException('NOT_FOUND_ACCOUNT_DM');
+      }
+
+      const overtime = await this.overtimeRepository
+        .createQueryBuilder('ot')
+        .leftJoinAndSelect('ot.project', 'p')
+        .where('p.divisionManager = :id', { id: dm.id })
+        .where('ot.id = :id', { id: idOvertime })
+        .getOne();
+
+      if (!overtime) {
+        throw new NotFoundException('NOT_FOUND_OVERTIME');
+      }
+      overtime.status = isAccept
+        ? OVER_TIME_STATUS.APPROVED
+        : OVER_TIME_STATUS.CANCEL;
+
+      await this.overtimeRepository.save(overtime);
+
+      return {
+        status: 200,
+        message: 'UPDATE_OVERTIME_BY_DM_SUCCESS',
+        data: overtime,
+      };
+    } catch (error) {
+      console.log('UPDATE_OVERTIME_BY_DM_FAIL', error);
       throw new BadRequestException(error);
     }
   }
