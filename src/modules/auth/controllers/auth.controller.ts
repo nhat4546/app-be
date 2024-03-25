@@ -3,6 +3,7 @@ import { ApiParam, ApiTags } from '@nestjs/swagger';
 import { LoginInput } from '../dtos/auth-login-input.dto';
 import { RegisterInput } from '../dtos/auth-register-input.dto';
 import { AuthService } from '../services/auth.service';
+import { RefreshTokenInput } from '../dtos/auth-refresh-token.dto';
 
 @ApiTags('auth')
 @Controller('auth')
@@ -22,5 +23,10 @@ export class AuthController {
   @Post('/login')
   async login(@Body() body: LoginInput) {
     return await this.authService.login(body);
+  }
+
+  @Post('/refresh-token')
+  async refreshToken(@Body() body: RefreshTokenInput) {
+    return await this.authService.refreshToken(body);
   }
 }

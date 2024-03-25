@@ -9,6 +9,7 @@ import { CheckingInformationService } from '../account/services/checking-informa
 import { MailService } from '../mail/services/mail.service';
 import { AuthController } from './controllers/auth.controller';
 import { AuthService } from './services/auth.service';
+import { TokenEntity } from './entities/token.entity';
 
 @Module({
   controllers: [AuthController],
@@ -24,6 +25,7 @@ import { AuthService } from './services/auth.service';
       UserEntity,
       AccountEntity,
       CheckingInformationEntity,
+      TokenEntity,
     ]),
   ],
 })

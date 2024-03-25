@@ -2,6 +2,7 @@ import {
   BadRequestException,
   Injectable,
   NotFoundException,
+  UnauthorizedException,
 } from '@nestjs/common';
 import { InjectRepository } from '@nestjs/typeorm';
 import * as bcrypt from 'bcrypt';
@@ -18,6 +19,8 @@ import { LoginInput } from '../dtos/auth-login-input.dto';
 import { CheckingInformationService } from 'src/modules/account/services/checking-information.service';
 import { ResponseFormat } from 'src/shared/common';
 import { RegisterInput } from '../dtos/auth-register-input.dto';
+import { TokenEntity } from '../entities/token.entity';
+import { RefreshTokenInput } from '../dtos/auth-refresh-token.dto';
 @Injectable()
 export class AuthService {
   constructor(
@@ -25,6 +28,8 @@ export class AuthService {
     private accountRepository: Repository<AccountEntity>,
     @InjectRepository(UserEntity)
     private userRepository: Repository<UserEntity>,
+    @InjectRepository(TokenEntity)
+    private tokenRepository: Repository<TokenEntity>,
     private mailService: MailService,
     private configService: ConfigService,
     private jwtService: JwtService,
@@ -151,6 +156,20 @@ export class AuthService {
         email: user.email,
       });
 
+      const tokenEntity = await this.tokenRepository.findOneBy({
+        id: account.id,
+      });
+      if (tokenEntity) {
+        tokenEntity.refreshToken = data.refreshToken;
+        await this.tokenRepository.save(tokenEntity);
+      }
+      if (!tokenEntity) {
+        const newToken = new TokenEntity();
+        newToken.userId = account.id;
+        newToken.refreshToken = data.refreshToken;
+        await this.tokenRepository.save(newToken);
+      }
+
       return {
         status: 200,
         message: 'LOGIN_SUCCESS',
@@ -158,6 +177,45 @@ export class AuthService {
       };
     } catch (error) {
       console.log('LOGIN_FAIL', error);
+      throw new BadRequestException(error);
+    }
+  }
+
+  async refreshToken(input: RefreshTokenInput): Promise<ResponseFormat> {
+    try {
+      const payload = await this.jwtService.verifyAsync(input.refreshToken, {
+        secret: this.configService.get('JWT_REFRESH_TOKEN'),
+      });
+
+      const user = await this.userRepository.findOneBy({
+        id: payload.id,
+      });
+      if (!user) {
+        throw new UnauthorizedException('UNAUTHORIZED', 'UNAUTHORIZED');
+      }
+
+      const token = await this.tokenRepository.findOneBy({
+        refreshToken: input.refreshToken,
+      });
+      if (!token) {
+        throw new UnauthorizedException('UNAUTHORIZED', 'UNAUTHORIZED');
+      }
+
+      const data = this.handleResponseLogin({
+        id: user.id,
+        email: user.email,
+      });
+
+      token.refreshToken = data.refreshToken;
+      await this.tokenRepository.save(token);
+
+      return {
+        status: 200,
+        message: 'REFRESH_TOKEN_SUCCESS',
+        data,
+      };
+    } catch (error) {
+      console.log('ERRORS_REFRESH_TOKEN', error);
       throw new BadRequestException(error);
     }
   }
