@@ -16,11 +16,12 @@ import { UserEntity } from 'src/modules/account/entities/user.entity';
 import { MailService } from 'src/modules/mail/services/mail.service';
 import { LoginInput } from '../dtos/auth-login-input.dto';
 
+import { ROLE } from 'src/modules/account/constants';
 import { CheckingInformationService } from 'src/modules/account/services/checking-information.service';
 import { ResponseFormat } from 'src/shared/common';
+import { RefreshTokenInput } from '../dtos/auth-refresh-token.dto';
 import { RegisterInput } from '../dtos/auth-register-input.dto';
 import { TokenEntity } from '../entities/token.entity';
-import { RefreshTokenInput } from '../dtos/auth-refresh-token.dto';
 @Injectable()
 export class AuthService {
   constructor(
@@ -57,8 +58,18 @@ export class AuthService {
     return { accessToken, refreshToken, expiredAccess, expiredRefresh };
   }
 
-  async register(input: RegisterInput): Promise<ResponseFormat> {
+  async register(
+    input: RegisterInput,
+    accountReq: { id: number; email: string },
+  ): Promise<ResponseFormat> {
     try {
+      const userRequest = await this.userRepository.findOneBy({
+        id: accountReq.id,
+      });
+      if (!userRequest || userRequest.role !== ROLE.SUPER_ADMIN) {
+        throw new BadRequestException('ACCOUNT_NOT_PERMISSION');
+      }
+
       const email = input.email.toLocaleLowerCase();
       const password = input.password;
       const isExistEmail = await this.userRepository.findOne({

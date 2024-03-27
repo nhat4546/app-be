@@ -1,5 +1,11 @@
 import { ApiProperty } from '@nestjs/swagger';
-import { IsEmail, IsNotEmpty, Matches, MaxLength } from 'class-validator';
+import {
+  IsEmail,
+  IsEnum,
+  IsNotEmpty,
+  Matches,
+  MaxLength,
+} from 'class-validator';
 import { ROLE } from 'src/modules/account/constants';
 import { PASSWORD_REGEX } from 'src/shared/constants/regex';
 
@@ -18,5 +24,7 @@ export class RegisterInput {
   password: string;
 
   @ApiProperty()
+  @IsNotEmpty()
+  @IsEnum(ROLE)
   role: ROLE;
 }

@@ -11,6 +11,7 @@ import { ApiTags } from '@nestjs/swagger';
 import { AuthGuard } from 'src/modules/auth/auth.guard';
 import { ApproveOvertime, CreateOvertime } from '../dtos/overtime-req';
 import { OvertimeService } from '../services/overtime.service';
+import { TRequestCommon } from 'src/shared/type';
 
 @ApiTags('overtime')
 @Controller('overtime')
@@ -19,16 +20,14 @@ export class OvertimeController {
 
   @Get('/request-for-pm')
   @UseGuards(AuthGuard)
-  async getRequestForPM(
-    @Request() req: { account: { id: number; email: string } },
-  ) {
+  async getRequestForPM(@Request() req: TRequestCommon) {
     return await this.overtimeService.getRequestForPM(req?.account);
   }
 
   @Post('/pm-accept-request/:id')
   @UseGuards(AuthGuard)
   async PMAcceptRequest(
-    @Request() req: { account: { id: number; email: string } },
+    @Request() req: TRequestCommon,
     @Param('id') id: number,
     @Body() input: ApproveOvertime,
   ) {
@@ -41,16 +40,14 @@ export class OvertimeController {
 
   @Get('/request-for-dm')
   @UseGuards(AuthGuard)
-  async getRequestForDM(
-    @Request() req: { account: { id: number; email: string } },
-  ) {
+  async getRequestForDM(@Request() req: TRequestCommon) {
     return await this.overtimeService.getRequestForDM(req?.account);
   }
 
   @Post('/dm-accept-request/:id')
   @UseGuards(AuthGuard)
   async DMAcceptRequest(
-    @Request() req: { account: { id: number; email: string } },
+    @Request() req: TRequestCommon,
     @Param('id') id: number,
     @Body() input: ApproveOvertime,
   ) {
@@ -63,9 +60,7 @@ export class OvertimeController {
 
   @Get()
   @UseGuards(AuthGuard)
-  async getMyOvertime(
-    @Request() req: { account: { id: number; email: string } },
-  ) {
+  async getMyOvertime(@Request() req: TRequestCommon) {
     return await this.overtimeService.getMyOvertime(req?.account?.id);
   }
 
@@ -73,7 +68,7 @@ export class OvertimeController {
   @UseGuards(AuthGuard)
   async getMyOvertimeById(
     @Param('id') id: number,
-    @Request() req: { account: { id: number; email: string } },
+    @Request() req: TRequestCommon,
   ) {
     return await this.overtimeService.getMyOvertimeById(req?.account?.id, +id);
   }
@@ -82,7 +77,7 @@ export class OvertimeController {
   @UseGuards(AuthGuard)
   async createOvertime(
     @Body() input: CreateOvertime,
-    @Request() req: { account: { id: number; email: string } },
+    @Request() req: TRequestCommon,
   ) {
     return await this.overtimeService.createOvertime(input, req?.account);
   }
